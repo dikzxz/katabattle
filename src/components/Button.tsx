@@ -15,7 +15,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   return (
     <button
-      className={`inline-flex min-h-14 items-center justify-center rounded-[20px] border-[3px] border-navy px-7 text-lg font-bold transition-transform hover:-translate-y-0.5 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-14 items-center justify-center rounded-[20px] border-[3px] border-navy px-7 text-lg font-[700] transition-transform hover:-translate-y-0.5 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${className}`}
       {...props}
     />
   );

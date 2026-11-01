@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { Logo } from "@/components/Logo";
 import { ScorePill } from "@/components/ScorePill";
 import { Tile } from "@/components/Tile";
 import { GRID_SIZE, TARGET_SCORE, WORD_COUNT } from "@/lib/config";
@@ -8,8 +9,8 @@ export default function Home() {
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-5 py-12 sm:px-8">
       <header className="text-center">
         <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-navy/70">Pratinjau komponen</p>
-        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">Kata<span className="text-blue">Battle</span></h1>
-        <p className="mt-3 text-lg text-navy/75">Cari kata, adu cepat, jadi juara!</p>
+        <div className="flex justify-center"><Logo size="lg" /></div>
+        <p className="mt-3 text-lg text-navy/75">Cari kata, kalahkan lawan!</p>
       </header>
 
       <section className="w-full rounded-[28px] border-[3px] border-navy bg-white p-6 shadow-[0_7px_0_#1b2a4a] sm:p-9">
