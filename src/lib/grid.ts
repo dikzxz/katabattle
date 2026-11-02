@@ -1,5 +1,5 @@
 import { themes, type Theme } from "@/data/themes";
-import { GRID_SIZE, WORD_COUNT } from "@/lib/config";
+import { ALLOWED_DIRECTIONS, GRID_SIZE, WORD_COUNT } from "@/lib/config";
 import { createSeededRandom } from "@/lib/random";
 
 export type Cell = { row: number; col: number };
@@ -12,11 +12,7 @@ export type Round = {
   placements: Record<string, Placement>;
 };
 
-const DIRECTIONS: Cell[] = [
-  { row: -1, col: -1 }, { row: -1, col: 0 }, { row: -1, col: 1 },
-  { row: 0, col: -1 }, { row: 0, col: 1 },
-  { row: 1, col: -1 }, { row: 1, col: 0 }, { row: 1, col: 1 },
-];
+const DIRECTIONS: Cell[] = ALLOWED_DIRECTIONS.map(({ row, col }) => ({ row, col }));
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MAX_ATTEMPTS = 500;
 

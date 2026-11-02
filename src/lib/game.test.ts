@@ -36,6 +36,15 @@ describe("generateRound", () => {
       expect(cells.map(({ row, col }) => round.grid[row][col]).join("")).toBe(word);
     }
   });
+
+  it("places words only in the allowed reading directions", () => {
+    const round = generateRound("reading-directions");
+    for (const cells of Object.values(round.placements)) {
+      const rowDelta = cells[1].row - cells[0].row;
+      const colDelta = cells[1].col - cells[0].col;
+      expect([[0, 1], [1, 0], [1, 1], [-1, 1]]).toContainEqual([rowDelta, colDelta]);
+    }
+  });
 });
 
 function roundFor(word: string, cells: Cell[]): Round {
