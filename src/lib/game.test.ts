@@ -4,6 +4,7 @@ import { WORD_COUNT } from "@/lib/config";
 import { checkSelection, snapToLine } from "@/lib/validate";
 import { useGameStore } from "@/store/gameStore";
 import { themes } from "@/data/themes";
+import { colorForClaim, getBotDelay, pickBotWord } from "@/lib/gameHelpers";
 
 describe("generateRound", () => {
   it("keeps every theme word valid and free from contained words", () => {
@@ -94,5 +95,25 @@ describe("game store", () => {
     store.claimWord("p2", words[5]);
     expect(useGameStore.getState().claims[words[5]]).toBeUndefined();
     expect(useGameStore.getState().players.find((player) => player.id === "p2")?.score).toBe(0);
+  });
+});
+
+describe("game helpers", () => {
+  it("cycles through found-word colors", () => {
+    expect(Array.from({ length: 9 }, (_, index) => colorForClaim(index))).toEqual([
+      "yellow", "coral", "mint", "sky", "lavender", "peach", "pink", "yellow", "coral",
+    ]);
+  });
+
+  it("creates a reproducible bot delay in the expected range", () => {
+    expect(getBotDelay("bot-seed", 3)).toBe(getBotDelay("bot-seed", 3));
+    expect(getBotDelay("bot-seed", 3)).toBeGreaterThanOrEqual(8_000);
+    expect(getBotDelay("bot-seed", 3)).toBeLessThanOrEqual(20_000);
+  });
+
+  it("picks a reproducible unclaimed bot word or null when empty", () => {
+    expect(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"])).toBe(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"]));
+    expect(["KURSI", "GELAS"]).toContain(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"]));
+    expect(pickBotWord("bot-seed", 4, [])).toBeNull();
   });
 });
