@@ -5,6 +5,7 @@ import { checkSelection, snapToLine } from "@/lib/validate";
 import { useGameStore } from "@/store/gameStore";
 import { themes } from "@/data/themes";
 import { colorForClaim, getBotDelay, pickBotWord } from "@/lib/gameHelpers";
+import { createSeededRandom, pickFillerLetter } from "@/lib/random";
 
 describe("generateRound", () => {
   it("keeps every theme word valid and free from contained words", () => {
@@ -146,5 +147,18 @@ describe("game helpers", () => {
     expect(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"])).toBe(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"]));
     expect(["KURSI", "GELAS"]).toContain(pickBotWord("bot-seed", 4, ["KURSI", "GELAS"]));
     expect(pickBotWord("bot-seed", 4, [])).toBeNull();
+  });
+});
+
+describe("weighted filler letters", () => {
+  it("uses the seeded generator reproducibly and favors common Indonesian letters", () => {
+    const pickMany = (seed: string) => {
+      const random = createSeededRandom(seed);
+      return Array.from({ length: 10_000 }, () => pickFillerLetter(random));
+    };
+    const sequence = pickMany("weighted-fill");
+    expect(sequence).toEqual(pickMany("weighted-fill"));
+    expect(sequence.filter((letter) => "ANIKETRUSML".includes(letter)).length).toBeGreaterThan(sequence.length * 0.55);
+    expect(sequence.filter((letter) => "QX".includes(letter)).length).toBeLessThan(sequence.length * 0.01);
   });
 });

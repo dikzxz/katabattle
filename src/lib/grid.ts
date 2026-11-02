@@ -1,6 +1,6 @@
 import { themes, type Theme } from "@/data/themes";
 import { ALLOWED_DIRECTIONS, GRID_SIZE, WORD_COUNT } from "@/lib/config";
-import { createSeededRandom } from "@/lib/random";
+import { createSeededRandom, pickFillerLetter } from "@/lib/random";
 
 export type Cell = { row: number; col: number };
 export type Placement = Cell[];
@@ -13,7 +13,6 @@ export type Round = {
 };
 
 const DIRECTIONS: Cell[] = ALLOWED_DIRECTIONS.map(({ row, col }) => ({ row, col }));
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const MAX_ATTEMPTS = 500;
 
 function shuffled<T>(items: readonly T[], random: () => number): T[] {
@@ -84,6 +83,6 @@ export function generateRound(seed: string): Round {
   }
   if (!result) throw new Error(`Unable to place all words for seed "${seed}" after ${MAX_ATTEMPTS} attempts.`);
 
-  const grid = result.grid.map((row) => row.map((letter) => letter ?? ALPHABET[Math.floor(random() * ALPHABET.length)]));
+  const grid = result.grid.map((row) => row.map((letter) => letter ?? pickFillerLetter(random)));
   return { seed, theme: theme.name, words, grid, placements: result.placements };
 }

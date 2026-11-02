@@ -23,3 +23,19 @@ export function mulberry32(seed: number): () => number {
 export function createSeededRandom(seed: string): () => number {
   return mulberry32(hashSeed(seed));
 }
+
+const FILLER_LETTER_WEIGHTS: readonly [string, number][] = [
+  ["A", 12], ["N", 11], ["I", 10], ["K", 9], ["E", 9], ["T", 8], ["R", 8], ["U", 7], ["S", 7], ["M", 6], ["L", 6],
+  ["D", 4], ["P", 4], ["B", 4], ["G", 4], ["H", 4], ["O", 4],
+  ["J", 1], ["C", 1], ["Y", 1], ["W", 1], ["F", 1], ["V", 1], ["Z", 1], ["Q", 0.2], ["X", 0.2],
+];
+const FILLER_TOTAL_WEIGHT = FILLER_LETTER_WEIGHTS.reduce((total, [, weight]) => total + weight, 0);
+
+export function pickFillerLetter(random: () => number): string {
+  let pick = random() * FILLER_TOTAL_WEIGHT;
+  for (const [letter, weight] of FILLER_LETTER_WEIGHTS) {
+    pick -= weight;
+    if (pick < 0) return letter;
+  }
+  return FILLER_LETTER_WEIGHTS[0][0];
+}
