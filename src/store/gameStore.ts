@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { generateRound, type Round } from "@/lib/grid";
-import { TARGET_SCORE } from "@/lib/config";
+import { TARGET_SCORE, WORD_COUNT } from "@/lib/config";
 
 export type Player = {
   id: string;
@@ -15,7 +15,8 @@ type GameState = {
   claims: Record<string, string>;
   winnerId: string | null;
   startedAt: number | null;
-  startRound: (seed: string, players: Omit<Player, "score">[]) => void;
+  mode: "solo" | "versus";
+  startRound: (seed: string, players: Omit<Player, "score">[], mode?: "solo" | "versus") => void;
   claimWord: (playerId: string, word: string) => void;
 };
 
@@ -25,13 +26,15 @@ export const useGameStore = create<GameState>((set) => ({
   claims: {},
   winnerId: null,
   startedAt: null,
-  startRound: (seed, players) => {
+  mode: "versus",
+  startRound: (seed, players, mode = players.length < 2 ? "solo" : "versus") => {
     set({
       round: generateRound(seed),
       players: players.map((player) => ({ ...player, score: 0 })),
       claims: {},
       winnerId: null,
       startedAt: Date.now(),
+      mode,
     });
   },
   claimWord: (playerId, word) => set((state) => {
@@ -46,7 +49,9 @@ export const useGameStore = create<GameState>((set) => ({
     return {
       claims: { ...state.claims, [word]: playerId },
       players,
-      winnerId: player.score >= TARGET_SCORE ? playerId : null,
+      winnerId: state.mode === "versus"
+        ? (player.score >= TARGET_SCORE ? playerId : null)
+        : (Object.keys(state.claims).length + 1 >= WORD_COUNT ? playerId : null),
     };
   }),
 }));

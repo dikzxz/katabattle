@@ -34,7 +34,7 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
   const newSeed = () => `${Date.now()}-${crypto.randomUUID()}`;
   const begin = useCallback((nextSeed: string) => {
     setSeed(nextSeed);
-    startRound(nextSeed, solo ? [LOCAL_PLAYER] : [LOCAL_PLAYER, BOT_PLAYER]);
+    startRound(nextSeed, solo ? [LOCAL_PLAYER] : [LOCAL_PLAYER, BOT_PLAYER], solo ? "solo" : "versus");
     setHintCount(1);
     setHintCell(null);
     setFloatingPoint(0);

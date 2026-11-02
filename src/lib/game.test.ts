@@ -96,6 +96,28 @@ describe("game store", () => {
     expect(useGameStore.getState().claims[words[5]]).toBeUndefined();
     expect(useGameStore.getState().players.find((player) => player.id === "p2")?.score).toBe(0);
   });
+
+  it("does not end solo at TARGET_SCORE, then ends when all words are claimed", () => {
+    useGameStore.getState().startRound("solo-mode-test", [
+      { id: "solo", nickname: "Kamu", avatarId: "cat" },
+    ], "solo");
+    const words = useGameStore.getState().round!.words;
+    for (const word of words.slice(0, 5)) useGameStore.getState().claimWord("solo", word);
+    expect(useGameStore.getState().winnerId).toBeNull();
+    for (const word of words.slice(5)) useGameStore.getState().claimWord("solo", word);
+    expect(useGameStore.getState().winnerId).toBe("solo");
+    expect(useGameStore.getState().players[0].score).toBe(9);
+  });
+
+  it("still ends versus at TARGET_SCORE", () => {
+    useGameStore.getState().startRound("versus-mode-test", [
+      { id: "p1", nickname: "Kamu", avatarId: "cat" },
+      { id: "p2", nickname: "Lawan", avatarId: "fox" },
+    ], "versus");
+    const words = useGameStore.getState().round!.words;
+    for (const word of words.slice(0, 5)) useGameStore.getState().claimWord("p1", word);
+    expect(useGameStore.getState().winnerId).toBe("p1");
+  });
 });
 
 describe("game helpers", () => {
