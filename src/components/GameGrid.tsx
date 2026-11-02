@@ -6,6 +6,7 @@ import { Tile } from "@/components/Tile";
 import type { Cell, Round } from "@/lib/grid";
 import { colorForClaim, isCellInCells, type WordColor } from "@/lib/gameHelpers";
 import { checkSelection, snapToLine } from "@/lib/validate";
+import { playSound, unlockAudio } from "@/lib/sound";
 import { useGameStore } from "@/store/gameStore";
 
 const variantByColor: Record<WordColor, "found-yellow" | "found-coral" | "found-mint" | "found-sky" | "found-lavender" | "found-peach" | "found-pink"> = {
@@ -47,6 +48,8 @@ export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
     if (disabled) return;
     const cell = findCell(event.target);
     if (!cell) return;
+    void unlockAudio();
+    playSound("tick", 0);
     event.currentTarget.setPointerCapture(event.pointerId);
     pointerId.current = event.pointerId;
     setSelection([cell]);
@@ -55,7 +58,11 @@ export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
   const pointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (pointerId.current !== event.pointerId || selection.length === 0) return;
     const cell = findCell(document.elementFromPoint(event.clientX, event.clientY));
-    if (cell) setSelection(snapToLine(selection[0], cell));
+    if (cell) {
+      const next = snapToLine(selection[0], cell);
+      if (next.length > selection.length) playSound("tick", next.length - 1);
+      setSelection(next);
+    }
   };
 
   const pointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -65,9 +72,11 @@ export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
     const finalSelection = cell && selection.length ? snapToLine(selection[0], cell) : selection;
     const match = checkSelection(round, finalSelection);
     if (match && !claims[match.word]) {
+      playSound("correct");
       claimWord(playerId, match.word);
       onFound?.(match.word, playerId);
     } else if (finalSelection.length > 1) {
+      playSound("wrong");
       setShake(true);
       window.setTimeout(() => setShake(false), 320);
     }

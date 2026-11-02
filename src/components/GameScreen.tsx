@@ -11,6 +11,7 @@ import { GRID_SIZE, TARGET_SCORE } from "@/lib/config";
 import { colorForClaim, getBotDelay, pickBotWord } from "@/lib/gameHelpers";
 import type { Cell } from "@/lib/grid";
 import { createSeededRandom } from "@/lib/random";
+import { isMuted, playSound, setMuted, unlockAudio } from "@/lib/sound";
 import { useGameStore } from "@/store/gameStore";
 
 const LOCAL_PLAYER = { id: "local", nickname: "Kamu", avatarId: "cat" };
@@ -29,6 +30,8 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
   const [hintCell, setHintCell] = useState<Cell | null>(null);
   const [floatingPoint, setFloatingPoint] = useState(0);
   const [opponentToast, setOpponentToast] = useState<string | null>(null);
+  const [muted, setMutedState] = useState(true);
+  const lastWinner = useRef<string | null>(null);
   const toastTimer = useRef<number | null>(null);
 
   const newSeed = () => `${Date.now()}-${crypto.randomUUID()}`;
@@ -45,6 +48,11 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
     const timer = window.setTimeout(() => begin(initialSeed.includes("random-seed") ? `${Date.now()}-${crypto.randomUUID()}` : initialSeed), 0);
     return () => window.clearTimeout(timer);
   }, [begin, initialSeed]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMutedState(isMuted()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const foundOrder = useMemo(() => Object.keys(claims), [claims]);
   const done = solo ? foundOrder.length >= 9 : winnerId !== null;
@@ -63,6 +71,7 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
         const unclaimed = current.round.words.filter((word) => !current.claims[word]);
         const word = pickBotWord(seed, turn, unclaimed);
         if (word) {
+          playSound("opponent");
           claimWord(BOT_PLAYER.id, word);
           setOpponentToast(`${BOT_PLAYER.nickname} menemukan ${word}!`);
           if (toastTimer.current) window.clearTimeout(toastTimer.current);
@@ -91,6 +100,7 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
     if (!remaining.length) return;
     const random = createSeededRandom(`${seed}:hint:${hintCount}`);
     const word = remaining[Math.floor(random() * remaining.length)];
+    playSound("hint");
     setHintCell(round.placements[word][0]);
     setHintCount((count) => count - 1);
     window.setTimeout(() => setHintCell(null), 2000);
@@ -100,11 +110,33 @@ export function GameScreen({ solo, initialSeed }: { solo: boolean; initialSeed: 
   const localScore = players.find((player) => player.id === "local")?.score ?? 0;
   const botScore = players.find((player) => player.id === "bot")?.score ?? 0;
 
+  useEffect(() => {
+    if (!winnerId || lastWinner.current === winnerId) return;
+    lastWinner.current = winnerId;
+    playSound(winnerId === "local" ? "win" : "lose");
+  }, [winnerId]);
+
+  const toggleMute = async () => {
+    await unlockAudio();
+    const next = !muted;
+    setMuted(next);
+    setMutedState(next);
+  };
+
   if (!round) return null;
   return (
     <main className="min-h-screen bg-sky px-3 pb-8 pt-3 text-navy sm:px-6 sm:pt-5">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 sm:gap-6">
-        <Logo size="md" />
+        <div className="relative flex w-full justify-center">
+          <Logo size="md" />
+          <button
+            type="button"
+            aria-label={muted ? "Aktifkan suara" : "Bisukan suara"}
+            onPointerDown={() => { void unlockAudio(); }}
+            onClick={toggleMute}
+            className="absolute right-1 top-0 grid size-11 place-items-center rounded-full border-[3px] border-navy bg-yellow text-xl shadow-[0_4px_0_#c49c22] active:translate-y-1 active:shadow-none sm:right-0"
+          >{muted ? "🔇" : "🔊"}</button>
+        </div>
         <ScoreBar players={players} solo={solo} startedAt={startedAt} floatingPoint={floatingPoint} opponentToast={opponentToast} />
         <h1 className="mt-1 text-center text-3xl font-bold text-white drop-shadow-[0_3px_0_#1b2a4a] sm:mt-2 sm:text-4xl">{round.theme}</h1>
 
