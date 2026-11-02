@@ -41,5 +41,7 @@ yarn-error.log*
 next-env.d.ts
 .next/
 node_modules/
+.env*
+!.env.example
 dev-server.log
 dev-server-error.log
