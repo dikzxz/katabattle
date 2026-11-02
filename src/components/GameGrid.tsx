@@ -12,28 +12,26 @@ import { useGameStore } from "@/store/gameStore";
 const variantByColor: Record<WordColor, "found-yellow" | "found-coral" | "found-mint" | "found-sky" | "found-lavender" | "found-peach" | "found-pink"> = {
   yellow: "found-yellow", coral: "found-coral", mint: "found-mint", sky: "found-sky", lavender: "found-lavender", peach: "found-peach", pink: "found-pink",
 };
-const lineColor: Record<WordColor, string> = { yellow: "#FFD84D", coral: "#FF6B5B", mint: "#4ADE9E", sky: "#7DD8FF", lavender: "#B9A1F4", peach: "#FFD7A8", pink: "#F4A8D3" };
 
-export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
+export function GameGrid({ round, disabled, hintCell, onFound }: {
   round: Round;
-  playerId: string;
   disabled: boolean;
   hintCell: Cell | null;
-  onFound?: (word: string, playerId: string) => void;
+  onFound?: (word: string) => void;
 }) {
-  const claims = useGameStore((state) => state.claims);
-  const claimWord = useGameStore((state) => state.claimWord);
+  const myFoundWords = useGameStore((state) => state.myFoundWords);
+  const foundWord = useGameStore((state) => state.foundWord);
   const [selection, setSelection] = useState<Cell[]>([]);
   const [shake, setShake] = useState(false);
   const pointerId = useRef<number | null>(null);
   const foundCells = useMemo(() => {
-    const map = new Map<string, { color: WordColor; pressed: boolean }>();
-    Object.entries(claims).forEach(([word], index) => {
-      const color = colorForClaim(index);
-      round.placements[word]?.forEach((cell) => map.set(`${cell.row},${cell.col}`, { color, pressed: true }));
+    const map = new Map<string, WordColor>();
+    myFoundWords.forEach(({ word, colorIndex }) => {
+      const color = colorForClaim(colorIndex);
+      round.placements[word]?.forEach((cell) => map.set(`${cell.row},${cell.col}`, color));
     });
     return map;
-  }, [claims, round.placements]);
+  }, [myFoundWords, round.placements]);
 
   const findCell = useCallback((target: EventTarget | null): Cell | null => {
     if (!(target instanceof Element)) return null;
@@ -71,10 +69,12 @@ export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
     const cell = findCell(document.elementFromPoint(event.clientX, event.clientY));
     const finalSelection = cell && selection.length ? snapToLine(selection[0], cell) : selection;
     const match = checkSelection(round, finalSelection);
-    if (match && !claims[match.word]) {
-      playSound("correct");
-      claimWord(playerId, match.word);
-      onFound?.(match.word, playerId);
+    if (match) {
+      if (!myFoundWords.some((found) => found.word === match.word)) {
+        playSound("correct");
+        foundWord(match.word, match.cells);
+        onFound?.(match.word);
+      }
     } else if (finalSelection.length > 1) {
       playSound("wrong");
       setShake(true);
@@ -109,14 +109,13 @@ export function GameGrid({ round, playerId, disabled, hintCell, onFound }: {
           >
             <Tile
               letter={letter}
-              variant={selected ? "selected" : found ? variantByColor[found.color] : "normal"}
+              variant={selected ? "selected" : found ? variantByColor[found] : "normal"}
               className={`!h-full !w-full !rounded-[9px] border-2 text-[clamp(0.8rem,4vw,1.55rem)] shadow-[0_3px_0_#aab6c5] sm:!rounded-[12px] sm:border-[3px] ${found ? "translate-y-[2px] !shadow-none" : ""} ${isHint ? "animate-pulse ring-4 ring-yellow" : ""}`}
             />
             {selected && <span className="pointer-events-none absolute inset-[2px] rounded-[8px] border-[2px] border-white shadow-[0_0_0_2px_#1b2a4a]" />}
           </div>
         );
       }))}
-      <span className="sr-only">Warna sorotan: {Object.keys(lineColor).length}</span>
     </motion.div>
   );
 }
