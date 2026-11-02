@@ -1,9 +1,10 @@
 import { GameScreen } from "@/components/GameScreen";
 import { Suspense } from "react";
+import { newSeed } from "@/lib/random";
 
 async function SoloGameContent({ searchParams }: { searchParams: Promise<{ seed?: string }> }) {
   const { seed } = await searchParams;
-  return <GameScreen key={seed ?? "solo-random"} solo initialSeed={seed ?? "solo-random-seed"} />;
+  return <GameScreen key={seed ?? "solo-random"} solo initialSeed={seed ?? newSeed()} avoidRecentThemes={!seed} />;
 }
 
 export default function SoloGamePage(props: { searchParams: Promise<{ seed?: string }> }) {

@@ -10,13 +10,7 @@ export function colorForClaim(claimIndex: number): WordColor {
 
 export function getBotDelay(seed: string, turn: number): number {
   const random = createSeededRandom(`${seed}:bot-delay:${turn}`);
-  return 8_000 + Math.floor(random() * 12_001);
-}
-
-export function pickBotWord(seed: string, turn: number, unclaimedWords: string[]): string | null {
-  if (unclaimedWords.length === 0) return null;
-  const random = createSeededRandom(`${seed}:bot-word:${turn}`);
-  return unclaimedWords[Math.floor(random() * unclaimedWords.length)];
+  return 9_000 + Math.floor(random() * 15_001);
 }
 
 export function isCellInCells(cells: Cell[], target: Cell): boolean {

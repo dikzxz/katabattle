@@ -1,9 +1,10 @@
 import { GameScreen } from "@/components/GameScreen";
 import { Suspense } from "react";
+import { newSeed } from "@/lib/random";
 
 async function VersusDemoContent({ searchParams }: { searchParams: Promise<{ seed?: string }> }) {
   const { seed } = await searchParams;
-  return <GameScreen key={seed ?? "versus-random"} solo={false} initialSeed={seed ?? "versus-random-seed"} />;
+  return <GameScreen key={seed ?? "versus-random"} solo={false} initialSeed={seed ?? newSeed()} />;
 }
 
 export default function VersusDemoPage(props: { searchParams: Promise<{ seed?: string }> }) {

@@ -24,6 +24,12 @@ export function createSeededRandom(seed: string): () => number {
   return mulberry32(hashSeed(seed));
 }
 
+export function newSeed(): string {
+  const values = new Uint32Array(4);
+  globalThis.crypto.getRandomValues(values);
+  return Array.from(values, (value) => value.toString(36).padStart(7, "0")).join("");
+}
+
 const FILLER_LETTER_WEIGHTS: readonly [string, number][] = [
   ["A", 12], ["N", 11], ["I", 10], ["K", 9], ["E", 9], ["T", 8], ["R", 8], ["U", 7], ["S", 7], ["M", 6], ["L", 6],
   ["D", 4], ["P", 4], ["B", 4], ["G", 4], ["H", 4], ["O", 4],
